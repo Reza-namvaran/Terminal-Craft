@@ -4,8 +4,30 @@
 #include <stdlib.h>
 #include <termios.h>
 
+#define X_PIXELS 400
+#define Y_PIXELS 200
+#define X_BLOCKS 20
+#define Y_BLOCKS 20
+#define Z_BLOCKS 10
+
 static struct termios org_term, new_term;
 static char key_status[256] = {0};
+
+typedef struct Vector {
+    double x;
+    double y;
+    double z;
+} vect;
+
+typedef struct Camera {
+    double yaw;
+    double pitch;
+} cam;
+
+typedef struct PlayerPos {
+    vect pos;
+    cam view; 
+} player_pos_view;
 
 void init_terminal() {
     tcgetattr(STDIN_FILENO, &org_term);
@@ -38,8 +60,49 @@ int is_key_pressed(char key) {
     return key_status[(unsigned char) key];
 }
 
+char** init_picture() {
+    char** picture = malloc(sizeof(char*) * Y_PIXELS);
+    for (int i = 0; i < Y_PIXELS; i++) {
+        picture[i] = malloc(sizeof(char) * X_PIXELS);
+    }
+
+
+    return picture;
+}
+
+char*** init_block() {
+    char*** block = malloc(sizeof(char**) * Z_BLOCKS);
+    for (int i = 0; i < Z_BLOCKS; i++) {
+        block[i] = malloc(sizeof(char*) * Y_BLOCKS);
+        for (int j = 0; j < Y_BLOCKS; j++) {
+            block[i][j] = malloc(sizeof(char) * X_BLOCKS);
+            for (int k = 0; k < X_BLOCKS; k++) {
+                block[i][j][k] = ' ';
+            }
+        }
+    }
+
+    return block;
+}
+
+player_pos_view init_pos_view() {
+    player_pos_view posView;
+    
+    posView.pos.x = 5;
+    posView.pos.y = 5;
+    posView.pos.z = 5;
+
+    posView.view.yaw = 0;
+    posView.view.pitch = 0;
+    
+    return posView;
+}
+
 int main() {
     init_terminal();
+    char** picture = init_picture();
+    char*** block = init_block();
+    player_pos_view posView = init_pos_view();
     for (;;) {
         input_handler();
         if (is_key_pressed('q')) {
